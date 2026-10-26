@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contact — Tell Ours Studio</title>
+  <meta name="description" content="Tell us about your project. We respond within two business days, and every inquiry gets read by a person on the team.">
+  <meta property="og:title" content="Contact — Tell Ours Studio">
+  <meta property="og:description" content="Tell us about your project. We respond within two business days, and every inquiry gets read by a person on the team.">
+  <meta property="og:image" content="https://telloursstudio.com/assets/img/33c472f4-01.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <meta name="theme-color" content="#0a0a0a">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://player.vimeo.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="css/site.css">
+</head>
+<body data-page="contact">
+<main id="main">
+  <section class="phead">
+    <div class="kicker mono"><span class="num">Contact</span><span>We respond within two business days</span><hr></div>
+    <h1 class="phead__title" data-lines><span class="line-mask"><span>Bring us the</span></span><span class="line-mask"><span>story you</span></span><span class="line-mask"><span class="serif">cannot ignore.</span></span></h1>
+  </section>
+  <section class="sec sec--bone">
+    <div class="wrap split split--wide">
+      <div>
+        <p class="lede" style="margin-top:0">Tell us about your project. Every inquiry gets read by a person on the team.</p>
+        <dl class="creds" style="margin-top:40px">
+          <div><dt>Studio</dt><dd>270 Center St<br>West Haven, CT 06516</dd></div>
+          <div><dt>Email</dt><dd><a href="mailto:alpha@telloursstudio.com" data-copy="alpha@telloursstudio.com">alpha@telloursstudio.com</a></dd></div>
+          <div><dt>Phone</dt><dd><a href="tel:+17186908169">(718) 690-8169</a></dd></div>
+          <div><dt>Instagram</dt><dd><a href="https://www.instagram.com/telloursstudio/" target="_blank" rel="noopener">@telloursstudio ↗</a></dd></div>
+        </dl>
+      </div>
+      <!-- To collect submissions without the visitor's email app, set action="https://formspree.io/f/XXXX" (or similar) and method="POST". -->
+      <form class="form" id="project-form" novalidate>
+        <div class="field"><label for="f-name">Name</label><input id="f-name" name="name" autocomplete="name" required></div>
+        <div class="field"><label for="f-org">Organization (optional)</label><input id="f-org" name="org" autocomplete="organization"></div>
+        <div class="field"><label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email" required></div>
+        <fieldset class="field budget" style="border:0;margin:0;padding-inline:0;border-bottom:1px solid var(--line-ink)">
+          <legend>Budget range</legend>
+          <input type="radio" id="b1" name="budget" value="Under $10k"><label for="b1">Under $10k</label>
+          <input type="radio" id="b2" name="budget" value="$10k – $25k"><label for="b2">$10k – $25k</label>
+          <input type="radio" id="b3" name="budget" value="$25k – $75k"><label for="b3">$25k – $75k</label>
+          <input type="radio" id="b4" name="budget" value="$75k – $200k"><label for="b4">$75k – $200k</label>
+          <input type="radio" id="b5" name="budget" value="$200k+"><label for="b5">$200k+</label>
+          <input type="radio" id="b6" name="budget" value="Not sure yet"><label for="b6">Not sure yet</label>
+        </fieldset>
+        <div class="field"><label for="f-msg">Project description</label><textarea id="f-msg" name="message" required></textarea></div>
+        <div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-top:32px">
+          <button class="btn btn--ember" type="submit">Start your project <span class="arrow">→</span></button>
+          <p id="form-note" class="mono" style="margin:0;color:#6b665e;text-transform:none;letter-spacing:0" role="status"></p>
+        </div>
+      </form>
+    </div>
+  </section>
+</main>
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/ScrollTrigger.min.js"></script>
+<script src="vendor/lenis.min.js"></script>
+<script src="vendor/vimeo-player.min.js"></script>
+<script src="js/data.js"></script>
+<script src="js/site.js"></script>
+</body>
+</html>
