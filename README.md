@@ -13,7 +13,6 @@ js/site.js        Shared behaviour (header, cursor, grain, theater player, page 
 css/site.css      Design system: ink / bone / ember · Anton · Instrument Serif · Inter Tight
 assets/img        Every photo carried over from the Lovable site (resized for web)
 work/videos/*     Redirects so old links like /work/videos/black-man-run keep working
-CNAME             Tells GitHub Pages to serve this on telloursstudio.com
 ```
 
 ## Add a new film
@@ -30,8 +29,9 @@ Then open http://localhost:4173.
 
 ## Moving off Lovable (keeping telloursstudio.com)
 1. **GitHub.** Create a repo (e.g. `telloursstudio/site`) and push this folder.
-2. **Hosting.** In the repo, go to *Settings → Pages → Deploy from branch → main / root*. GitHub
-   Pages is free, and the `CNAME` file already claims the domain. (Netlify or Vercel also work:
+2. **Hosting.** The repo `Telloursstudio.github.io` is served free by GitHub Pages at
+   https://telloursstudio.github.io. On switch day, set *Settings → Pages → Custom domain* to
+   `telloursstudio.com` (this adds a `CNAME` file). (Netlify or Vercel also work:
    *Import from GitHub* with no build command.)
 3. **DNS at Name.com** (where the domain is registered). Replace the records currently pointing at
    Lovable (`185.158.133.1`) with:
