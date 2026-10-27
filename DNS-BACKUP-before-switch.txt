@@ -1,0 +1,10 @@
+# DNS for telloursstudio.com before the switch from Lovable — Tue Oct 27 10:37:51 EDT 2026
+A telloursstudio.com -> 185.158.133.1 
+A www.telloursstudio.com -> 185.158.133.1 
+MX telloursstudio.com -> 1 smtp.google.com. 
+MX notify.telloursstudio.com -> 10 mxa.eu.mailgun.org. 10 mxb.eu.mailgun.org. 
+TXT telloursstudio.com -> "google-site-verification=zdOopkRFyI62Vwz1nbEuzzcqnwfGlqTbbYTI6LD5c-A" "v=spf1 include:_spf.google.com ~all" 
+TXT notify.telloursstudio.com -> "v=spf1 include:mailgun.org ~all" 
+NS telloursstudio.com -> ns1hwy.name.com. ns2fln.name.com. ns3fqs.name.com. ns4jnz.name.com. 
+NS notify.telloursstudio.com -> ns3.lovable.cloud. ns4.lovable.cloud. 
+TXT _dmarc.telloursstudio.com -> "v=DMARC1; p=none; rua=mailto:alpha@telloursstudio.com"

@@ -27,19 +27,17 @@ python3 -m http.server 4173
 ```
 Then open http://localhost:4173.
 
-## Moving off Lovable (keeping telloursstudio.com)
-1. **GitHub.** Create a repo (e.g. `telloursstudio/site`) and push this folder.
-2. **Hosting.** The repo `Telloursstudio.github.io` is served free by GitHub Pages at
-   https://telloursstudio.github.io. On switch day, set *Settings → Pages → Custom domain* to
-   `telloursstudio.com` (this adds a `CNAME` file). (Netlify or Vercel also work:
-   *Import from GitHub* with no build command.)
-3. **DNS at Name.com** (where the domain is registered). Replace the records currently pointing at
-   Lovable (`185.158.133.1`) with:
-   - `A @ 185.199.108.153`, `A @ 185.199.109.153`, `A @ 185.199.110.153`, `A @ 185.199.111.153`
-   - `CNAME www → <your-github-username>.github.io`
-   Then tick *Enforce HTTPS* in GitHub Pages once the certificate is issued (minutes to a few hours).
-4. **Lovable.** Remove the domain in Lovable *Domains* only *after* the new site is live. The
-   `notify.telloursstudio.com` sender was Lovable's form email, which goes away with it. See below.
+## Hosting & domain (switched 27 Oct 2026)
+- **Hosting:** GitHub Pages, from the `Telloursstudio/Telloursstudio.github.io` repo (`main` branch).
+  Every push to `main` goes live within about a minute. `CNAME` holds the custom domain, so don't delete it.
+- **Domain:** telloursstudio.com was bought through Lovable, so its registration and DNS are managed
+  in Lovable → Settings → *Workspace domains* → telloursstudio.com (renews Jul 19, 2028).
+  Website records: four `A @` → 185.199.108–111.153 and `CNAME www` → telloursstudio.github.io.
+  Email records (Google Workspace MX, SPF, DKIM, DMARC) were left untouched.
+- **Leaving Lovable completely:** use *Transfer out* on that page to move the domain to a registrar
+  you own (Cloudflare, Namecheap…), and re-create the records above there. Until then, keep the
+  Lovable workspace so the domain stays manageable and auto-renews.
+- `DNS-BACKUP-before-switch.txt` has the original records, in case you ever need to roll back.
 
 ## Contact form
 Static hosting has no server, so the form currently opens the visitor's email app pre-filled to
