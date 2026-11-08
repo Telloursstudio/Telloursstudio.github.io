@@ -204,30 +204,26 @@ window.TO = {
   onSet: { id: '1208305734', poster: IMG + '4743dc1e-wtoo-41-of-45.jpg' },
 };
 
-/* Native motion loops — silent H.264 MP4s cut from the films (assets/loops/<slug>.mp4 + .jpg).
-   A film listed here plays its own crisp loop on the home hero and work cards; any film not
-   listed falls back to the Vimeo background player. Cut new ones with tools/cut-loop.sh. */
+/* Motion loops — silent MP4s cut from the films (recipe: tools/loops.json, build: tools/build-loops.py).
+   Value = the largest size built for that loop (2160 = 4K master, 1080 = HD master).
+   Video files live on the media CDN; the first-frame posters (assets/loops/<slug>-0.jpg) live here.
+   A film listed here plays its loop on the home hero and work cards; others fall back to Vimeo. */
+TO.mediaBase = /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
+  ? '_media/loops/'                                   // local preview: python3 -m http.server
+  : 'https://telloursstudio-media.alpha-586.workers.dev/loops/v1/'; // Cloudflare Worker "telloursstudio-media" (_media/)
 TO.loops = {
-  'stay-curious': true,          // Drive_G master: night street, seawall, river
-  'tell-ours': true,             // Vimeo 4K/1080: wings, graduate, kente, the hug
-  'freedom-before-trial': true,  // bust in window light, water, portraits, the room
-  'hawa-tariq': true,            // rings, henna on fur, the veil
-  'where-does-yale-end': true,   // campus, smile, iron gate, fountain
-  'greys-anatomy': true,         // mirror, mask, blue mask, kids running
-  'freedom-pack': true,          // the fence, packing, the bags, the embrace
-  'citywide-youth-coalition-50': true,
-  'still-worth-reading': true,
-  'inside-coastal': true,
-  'blossoming-beyond-bars': true,
-  'the-city-is-watching': true,
+  'stay-curious': 2160, 'tell-ours': 1080, 'freedom-before-trial': 2160, 'freedom-pack': 2160,
+  'where-does-yale-end': 2160, 'inside-coastal': 2160, 'still-worth-reading': 2160, 'greys-anatomy': 2160,
+  'citywide-youth-coalition-50': 2160, 'blossoming-beyond-bars': 2160, 'the-city-is-watching': 1080,
+  'hawa-tariq': 2160, 'cap-film': 1080, 'cap-nonprofit': 1080, 'cap-post': 1080,
 };
 
 /* The four capability backdrops on the home page (hover a service to swap the full-screen loop). */
 TO.capLoops = {
-  film: 'assets/loops/cap-film',          // studio reel: B&W profile
-  nonprofit: 'assets/loops/cap-nonprofit', // studio reel: community table
-  brands: 'assets/loops/hawa-tariq',       // Hawa & Tariq: rings, henna, the veil
-  post: 'assets/loops/cap-post',           // studio reel: the edit bay
+  film: 'cap-film',           // studio reel: B&W profile
+  nonprofit: 'cap-nonprofit', // studio reel: community table
+  brands: 'hawa-tariq',       // Hawa & Tariq: rings, henna, the veil
+  post: 'cap-post',           // studio reel: the edit bay
 };
 
 TO.films.forEach((f, i) => {

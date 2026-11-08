@@ -57,16 +57,36 @@
     },
   };
   /* ------------------------------------------------------------ native loops
-     Muted, looping MP4 in a `.vframe`. Mounted once, then paused/resumed instead of
-     torn down, so swaps are instant. Falls back to Vimeo when the film has no loop. */
+     Silent MP4 loops in three sizes (720 / 1080 / 2160) on the media CDN, each with 0.5 s
+     keyframes. Rules:
+     - cards: 720p, or 1080p when the card is wide on a sharp screen; streamed, cached a year
+     - hero + capability stage ("feature"): start on 1080p at once, then quietly download the
+       best size for this screen into memory and switch to it at the next replay; from then on
+       every replay plays from memory, so the loop point never touches the network
+     - Data Saver / slow connections: 720p only
+     The poster under each video is its exact first frame, so a start, a replay or a size
+     switch is invisible. */
+  const conn = navigator.connection || {};
+  const saver = !!conn.saveData || /(^|-)(2g|3g)$/.test(conn.effectiveType || '');
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  const loopUrl = (slug, tier) => `${TO.mediaBase}${slug}-${tier}.mp4`;
+  const memory = []; // frames currently holding a loop in memory (blob), newest last
   const Loop = {
-    // small: the 960-wide card version (~1.5 Mbps) — several play at once, so they must stay light.
-    mount(frame, base, small = false) {
-      if (!frame || reduced) return;
+    tier(frame, max, feature) {
+      if (saver) return 720;
+      const px = (feature ? innerWidth : frame.getBoundingClientRect().width || innerWidth / 3) * dpr;
+      if (feature) return max >= 2160 && px >= 2400 ? 2160 : px > 900 ? 1080 : 720;
+      return px > 1400 && max >= 1080 ? 1080 : 720;
+    },
+    mount(frame, slug, { feature = false } = {}) {
+      if (!frame || reduced || !slug) return;
       let v = frame._video;
       if (!v) {
+        const max = TO.loops[slug] || 1080;
+        const want = Loop.tier(frame, max, feature);
+        const first = feature ? Math.min(want, 1080) : want;
         v = document.createElement('video');
-        Object.assign(v, { muted: true, loop: true, playsInline: true, preload: 'auto', poster: base + '-0.jpg', src: base + (small ? '-sm.mp4' : '.mp4') });
+        Object.assign(v, { muted: true, loop: true, playsInline: true, preload: 'auto', poster: `assets/loops/${slug}-0.jpg`, src: loopUrl(slug, first) });
         v.setAttribute('muted', ''); v.setAttribute('playsinline', ''); v.setAttribute('aria-hidden', 'true'); v.tabIndex = -1;
         v.className = 'loop';
         v.addEventListener('playing', () => frame.classList.add('is-live'));
@@ -74,8 +94,44 @@
         frame._video = v;
         frame.dataset.mounted = 'loop';
       }
+      if (feature && !saver && window.fetch && window.URL && !frame._blob && !frame._fetching) Loop.remember(frame, slug, Loop.tier(frame, TO.loops[slug] || 1080, true));
       v.play().catch(() => {});
       if (v.readyState > 2) frame.classList.add('is-live');
+    },
+    // Download the best size into memory; swap it in exactly at the next replay (frame 0 → identical poster).
+    remember(frame, slug, tier) {
+      const v = frame._video;
+      frame._fetching = true;
+      fetch(loopUrl(slug, tier), { mode: 'cors' }).then((r) => (r.ok ? r.blob() : Promise.reject(r.status))).then((blob) => {
+        frame._fetching = false;
+        frame._pending = URL.createObjectURL(blob);
+        let last = v.currentTime;
+        const onTime = () => {
+          if (!frame._pending) return;
+          const t = v.currentTime;
+          const wrapped = t < last - 0.5;
+          last = t;
+          if (!wrapped && !v.paused) return;
+          v.removeEventListener('timeupdate', onTime); v.removeEventListener('pause', onTime);
+          const playing = !v.paused;
+          v.src = frame._pending; frame._blob = frame._pending; frame._pending = null;
+          if (playing) v.play().catch(() => {});
+          memory.push(frame);
+          let guard = memory.length; while (memory.length > 4 && guard-- > 0) Loop.forget(memory.shift()); // playing loops are skipped
+        };
+        v.addEventListener('timeupdate', onTime);
+        v.addEventListener('pause', onTime, { once: true }); // off screen: swap while nobody is looking
+        if (v.paused) onTime();
+      }).catch(() => { frame._fetching = false; /* keep streaming the 1080p file */ });
+    },
+    // Free memory held by a loop that is off screen; it falls back to streaming if shown again.
+    forget(frame) {
+      if (!frame || !frame._blob || !frame._video) return;
+      if (!frame._video.paused) { memory.push(frame); return; }
+      const slug = frame._video.poster.split('/').pop().replace(/-0\.jpg$/, '');
+      frame._video.src = loopUrl(slug, 1080);
+      URL.revokeObjectURL(frame._blob);
+      frame._blob = null;
     },
     pause(frame) {
       if (!frame || !frame._video) return;
@@ -84,7 +140,7 @@
   };
   // One entry point for "make this frame move": native loop when we have one, Vimeo otherwise.
   const Bg = {
-    mount(frame, f, opts = {}) { if (f.loop) Loop.mount(frame, f.loop); else Vimeo.mountBg(frame, f.vimeo, ratioOf(f), opts.quality); },
+    mount(frame, f, opts = {}) { if (f.loop) Loop.mount(frame, f.slug, { feature: true }); else Vimeo.mountBg(frame, f.vimeo, ratioOf(f), opts.quality); },
     stop(frame, opts = {}) {
       if (!frame) return;
       if (frame._video) { if (opts.keep) Loop.pause(frame); else { frame.classList.remove('is-live'); Loop.pause(frame); } }
@@ -256,7 +312,7 @@
   // Cards whose film has a native loop play while on screen (and pause off screen), on every device.
   const inViewPlayer = !reduced && 'IntersectionObserver' in window && new IntersectionObserver((entries) => entries.forEach((e) => {
     const fr = $('.vframe', e.target);
-    if (e.isIntersecting) { Loop.mount(fr, TO.film(e.target.dataset.film).loop, true); e.target.classList.add('is-playing'); }
+    if (e.isIntersecting) { Loop.mount(fr, e.target.dataset.film); e.target.classList.add('is-playing'); }
     else { Loop.pause(fr); e.target.classList.remove('is-playing'); }
   }), { rootMargin: '120px 0px', threshold: 0.2 });
   function previews(root = document) {
@@ -409,6 +465,8 @@
     const slides = $$('.hero__slide', stage), picks = $$('.hero__pick', rail);
     let cur = 0, timer = null, inView = true;
     const DUR = 9;
+    // a slide with a loop stays up for one full play of it (never cut mid-shot); others 9 s
+    const slideDur = (sl) => { const v = $('video', sl); return v && isFinite(v.duration) && v.duration > 4 ? Math.max(DUR, v.duration - 0.15) : (sl.classList.contains('has-loop') ? 12 : DUR); };
 
     function show(i) {
       const prev = cur;
@@ -431,10 +489,10 @@
         gsap.fromTo(metaEl, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.8, delay: 0.25 });
         picks.forEach((p) => gsap.set($('i', p), { scaleX: 0 }));
         gsap.killTweensOf('.hero__pick i');
-        if (!reduced) gsap.to($('i', picks[cur]), { scaleX: 1, duration: DUR, ease: 'none', onComplete: () => inView && show(cur + 1) });
+        if (!reduced) gsap.to($('i', picks[cur]), { scaleX: 1, duration: slideDur(slides[cur]), ease: 'none', onComplete: () => inView && show(cur + 1) });
       } else {
         clearTimeout(timer);
-        timer = setTimeout(() => show(cur + 1), DUR * 1000);
+        timer = setTimeout(() => show(cur + 1), slideDur(slides[cur]) * 1000);
       }
     }
     picks.forEach((p) => p.addEventListener('click', () => show(+p.dataset.i)));
@@ -581,7 +639,7 @@
     const sec = $('#stage');
     if (!sec) return;
     const media = $('.stage__media', sec), list = $('.stage__list', sec), detail = $('.stage__detail', sec);
-    media.innerHTML = CAPS.map((c, i) => `<div class="stage__layer${i === 0 ? ' is-active' : ''}"><img src="${TO.capLoops[c.key]}-0.jpg" alt="" loading="lazy"><div class="vframe vframe--cover"></div></div>`).join('');
+    media.innerHTML = CAPS.map((c, i) => `<div class="stage__layer${i === 0 ? ' is-active' : ''}"><img src="assets/loops/${TO.capLoops[c.key]}-0.jpg" alt="" loading="lazy"><div class="vframe vframe--cover"></div></div>`).join('');
     list.innerHTML = CAPS.map((c, i) => `<li><a class="stage__item${i === 0 ? ' is-active' : ''}" href="services.html#${c.key}" data-i="${i}" data-cursor="Explore"><span class="mono">0${i + 1}</span><span class="stage__name">${CAP_SHORT[c.key]}</span></a></li>`).join('');
     const layers = $$('.stage__layer', media), items = $$('.stage__item', list);
     let cur = -1, inView = false, timer = null;
@@ -593,7 +651,7 @@
       const c = CAPS[i];
       detail.innerHTML = `<p>${c.body}</p><ul>${c.list.map((l) => `<li>${l}</li>`).join('')}</ul>`;
       if (hasGsap && !reduced) gsap.fromTo(detail.children, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.7, ease: 'expo.out', stagger: 0.06 });
-      if (inView) Loop.mount($('.vframe', layers[i]), TO.capLoops[c.key]);
+      if (inView) Loop.mount($('.vframe', layers[i]), TO.capLoops[c.key], { feature: true });
       if (prev > -1) setTimeout(() => cur !== prev && Loop.pause($('.vframe', layers[prev])), 900);
     }
     items.forEach((it) => {
@@ -609,7 +667,7 @@
     new IntersectionObserver(([e]) => {
       inView = e.isIntersecting;
       const fr = $('.vframe', layers[cur]);
-      if (inView) Loop.mount(fr, TO.capLoops[CAPS[cur].key]); else Loop.pause(fr);
+      if (inView) Loop.mount(fr, TO.capLoops[CAPS[cur].key], { feature: true }); else Loop.pause(fr);
       restart();
     }, { rootMargin: '100px 0px', threshold: 0.1 }).observe(sec);
     set(0);
