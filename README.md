@@ -53,7 +53,7 @@ where hovering a service swaps the whole screen to its footage.
 - **Recipe:** `tools/loops.json` lists every loop: its master file, crop, and the shots.
 - **Build:** `python3 tools/build-loops.py [slug]` writes 2160p / 1080p / 720p MP4s to `_media/loops/`
   (0.5 s keyframes, native frame rate, Rec.709 tags) and the first-frame stills to `assets/loops/`.
-- **Host:** the videos are NOT in this repo. They are served by the Cloudflare Worker
+- **Host:** the videos are NOT in this repo. They are served from https://media.telloursstudio.com by the Cloudflare Worker
   `telloursstudio-media` (`_media/worker.js`: byte ranges for Safari, one-year cache, CORS).
   To publish new loops: copy `_media/loops/*.mp4` into `_media/site/loops/v1/` (bump to `v2/` if you
   re-cut an existing loop, and update `TO.mediaBase`), regenerate `_media/sizes.js`, then from

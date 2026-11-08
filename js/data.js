@@ -210,7 +210,7 @@ window.TO = {
    A film listed here plays its loop on the home hero and work cards; others fall back to Vimeo. */
 TO.mediaBase = /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
   ? '_media/loops/'                                   // local preview: python3 -m http.server
-  : 'https://telloursstudio-media.alpha-586.workers.dev/loops/v1/'; // Cloudflare Worker "telloursstudio-media" (_media/)
+  : 'https://media.telloursstudio.com/loops/v1/';    // Cloudflare Worker "telloursstudio-media" (_media/)
 TO.loops = {
   'stay-curious': 2160, 'tell-ours': 1080, 'freedom-before-trial': 2160, 'freedom-pack': 2160,
   'where-does-yale-end': 2160, 'inside-coastal': 2160, 'still-worth-reading': 2160, 'greys-anatomy': 2160,
