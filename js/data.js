@@ -31,53 +31,53 @@ window.TO = {
   ],
 
   films: [
-    // Added Nov 8 2026 from the Vimeo library. Synopses are first drafts — check before publishing.
+    // Added Nov 8 2026 from the Vimeo library. Write-ups and credits from Alpha, Nov 8.
     {
       slug: 'stay-curious', title: 'Stay Curious', year: '2026', category: 'Documentary',
       vimeo: { id: '1244465083' }, runtime: '3:05',
-      synopsis: 'The trailer for Stay Curious, a documentary filmed in Guyana. Coming soon.',
-      credits: [['Production', 'Tell Ours Studio']],
+      synopsis: "James Jeter, Tell Ours’ Chief of Strategy, travels to Guyana to see his brother, who left America nine years ago and built a life there. Through the people who made the same move, and through Guyana’s history, the film asks what it means to leave, to unlearn a Eurocentric way of seeing, and to find a life that is truly yours. A story about family, roots, and the courage to look back. Stay curious.",
+      credits: [['Cinematographer', 'James Jeter'], ['Editor', 'Alpha Jalloh'], ['Production', 'Tell Ours Studio']],
       production: { location: 'Guyana', format: 'Documentary · Trailer' },
       stills: ['assets/loops/stay-curious.jpg'],
     },
     {
       slug: 'tell-ours', title: 'Tell Ours', year: '2026', category: 'Studio Film',
       vimeo: { id: '1230589423' }, runtime: '3:04',
-      synopsis: 'Who we are, in our own words: a portrait of Tell Ours Studio, the people we work with, and the stories we tell.',
-      credits: [['Production', 'Tell Ours Studio']],
+      synopsis: 'How Tell Ours Studio came to be: the story of how a studio in West Haven grew from one belief, that we tell our own stories, and the people, students, and community who built it with us.',
+      credits: [['Cinematographer', 'Alpha Jalloh'], ['Production', 'Tell Ours Studio']],
       production: { location: 'West Haven, CT', format: 'Studio Film' },
       stills: ['assets/loops/tell-ours.jpg'],
     },
     {
-      slug: 'pretrial', title: 'Pretrial', year: '2026', category: 'Documentary',
+      slug: 'freedom-before-trial', title: 'Freedom Before Trial', year: '2026', category: 'Documentary',
       vimeo: { id: '1244005219' }, runtime: '4:59',
-      synopsis: 'A short documentary on pretrial justice in Connecticut: what it costs, who pays, and the people working to change it.',
-      credits: [['Production', 'Tell Ours Studio']],
-      production: { location: 'Connecticut', format: 'Short Documentary' },
-      stills: ['assets/loops/pretrial.jpg'],
+      synopsis: 'What does it cost to be held before you are ever found guilty? Filmed at the first annual Pretrial Justice Conference at the Afro-American Cultural Center at Yale, Freedom Before Trial brings together judges, attorneys, scholars, advocates, and people who lived it. They show how a bail as small as $250 can cost someone their job, their housing, and their family, and why the factor that decides who goes home is not guilt or innocence, but money. A call to action ahead of Connecticut’s 2027 legislative session.',
+      credits: [['Director', 'Alpha Jalloh'], ['Cinematographer', 'Shakur Collins'], ['Cinematographer', 'Alpha Jalloh'], ['Host', 'Ray Boyd'], ['Production', 'Tell Ours Studio']],
+      production: { client: 'Next Level Empowerment Program', location: 'New Haven, CT', format: 'Short Documentary' },
+      stills: ['assets/loops/freedom-before-trial.jpg'],
       collections: ['nonprofit-community'],
     },
     {
-      slug: 'hawa-tariq', title: 'Hawa & Tariq', year: '2026', category: 'Wedding Film',
+      slug: 'hawa-tariq', title: 'Hawa & Tariq', year: '2026', category: 'Documentary',
       vimeo: { id: '1237420999' }, runtime: '10:20',
-      synopsis: 'The nikah of Hawa and Tariq, surrounded by family and friends.',
+      synopsis: 'A documentary love story. When an African American family and a Sierra Leonean family come together, two cultures meet, and sometimes clash. Hawa and Tariq’s story follows what it takes to bridge them: tradition, family, and falling in love, all the way to the nikah.',
       credits: [['Production', 'Tell Ours Studio']],
-      production: { format: 'Wedding Film' },
+      production: { format: 'Documentary' },
       stills: ['assets/loops/hawa-tariq.jpg'],
     },
     {
       slug: 'where-does-yale-end', title: 'Where Does Yale End?', short: 'Where Does Yale End', year: '2026', category: 'Documentary',
       vimeo: { id: '1227759960' }, runtime: '6:22',
-      synopsis: 'A short documentary asking where Yale ends and New Haven begins, told by the students and neighbours who live on both sides of the line.',
-      credits: [['Production', 'Tell Ours Studio']],
+      synopsis: 'A documentary about Yale’s influence on New Haven. Where do the university’s walls, gates, and reach stop, and where does the city begin? Told through the people who live and study on both sides of the line.',
+      credits: [['Director', 'Alpha Jalloh'], ['Cinematographer', 'Alpha Jalloh'], ['Production', 'Tell Ours Studio']],
       production: { location: 'New Haven, CT', format: 'Short Documentary' },
       stills: ['assets/loops/where-does-yale-end.jpg'],
     },
     {
       slug: 'greys-anatomy', title: "Grey's Anatomy", year: '2026', category: 'Short Film',
       vimeo: { id: '1218755416' }, runtime: '2:00',
-      synopsis: "Grey's Anatomy is a short film by Tell Ours Studio.",
-      credits: [['Production', 'Tell Ours Studio']],
+      synopsis: "A tale based on a poem by Gary Clarke, written from his experience as a formerly incarcerated man. Set in the inner city, Grey's Anatomy is about being watched: the constant observation, and what it takes to live under it.",
+      credits: [['Director', 'Craig Gore'], ['Director', 'Shakur Collins'], ['Director', 'Gary Clarke'], ['Director', 'Alpha Jalloh'], ['Cinematographer', 'Alpha Jalloh'], ['Poem', 'Gary Clarke']],
       production: { format: 'Short Film' },
       stills: ['assets/loops/greys-anatomy.jpg'],
     },
@@ -210,7 +210,7 @@ window.TO = {
 TO.loops = {
   'stay-curious': true,          // Drive_G master: night street, seawall, river
   'tell-ours': true,             // Vimeo 4K/1080: wings, graduate, kente, the hug
-  'pretrial': true,              // bust in window light, water, portraits, the room
+  'freedom-before-trial': true,  // bust in window light, water, portraits, the room
   'hawa-tariq': true,            // rings, henna on fur, the veil
   'where-does-yale-end': true,   // campus, smile, iron gate, fountain
   'greys-anatomy': true,         // mirror, mask, blue mask, kids running
@@ -236,7 +236,8 @@ TO.films.forEach((f, i) => {
   f.format = f.production.format || f.category;
   f.index = i;
 });
-TO.film = (slug) => TO.films.find((f) => f.slug === slug);
+TO.renamed = { pretrial: 'freedom-before-trial' }; // keep old links working
+TO.film = (slug) => TO.films.find((f) => f.slug === (TO.renamed[slug] || slug));
 
 TO.team = [
   {

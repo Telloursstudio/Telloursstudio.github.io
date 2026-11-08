@@ -60,12 +60,13 @@
      Muted, looping MP4 in a `.vframe`. Mounted once, then paused/resumed instead of
      torn down, so swaps are instant. Falls back to Vimeo when the film has no loop. */
   const Loop = {
-    mount(frame, base) {
+    // small: the 960-wide card version (~1.5 Mbps) — several play at once, so they must stay light.
+    mount(frame, base, small = false) {
       if (!frame || reduced) return;
       let v = frame._video;
       if (!v) {
         v = document.createElement('video');
-        Object.assign(v, { muted: true, loop: true, playsInline: true, preload: 'auto', poster: base + '.jpg', src: base + '.mp4' });
+        Object.assign(v, { muted: true, loop: true, playsInline: true, preload: 'auto', poster: base + '-0.jpg', src: base + (small ? '-sm.mp4' : '.mp4') });
         v.setAttribute('muted', ''); v.setAttribute('playsinline', ''); v.setAttribute('aria-hidden', 'true'); v.tabIndex = -1;
         v.className = 'loop';
         v.addEventListener('playing', () => frame.classList.add('is-live'));
@@ -245,7 +246,7 @@
   function card(f, cls = '', i = f.index) {
     const meta = [f.production.client, f.runtime, f.production.location].filter(Boolean).slice(0, 2);
     return `<a class="card ${cls}" href="film.html?f=${f.slug}" data-film="${f.slug}" data-cursor="Watch">
-      <div class="media"><img src="${f.poster}" alt="Still from ${esc(f.title)}" loading="lazy"><div class="vframe vframe--cover"></div></div>
+      <div class="media"><img src="${f.loop ? f.loop + '-0.jpg' : f.poster}" alt="Still from ${esc(f.title)}" loading="lazy"><div class="vframe vframe--cover"></div></div>
       <div class="card__shade"></div>
       <div class="card__top"><span class="chip chip--bone">${pad(i + 1)} / ${esc(f.format)}</span><span class="chip">${f.year}</span></div>
       <span class="card__live chip chip--ember"><i class="dot rec" style="background:var(--ink)"></i>Preview</span>
@@ -255,7 +256,7 @@
   // Cards whose film has a native loop play while on screen (and pause off screen), on every device.
   const inViewPlayer = !reduced && 'IntersectionObserver' in window && new IntersectionObserver((entries) => entries.forEach((e) => {
     const fr = $('.vframe', e.target);
-    if (e.isIntersecting) { Loop.mount(fr, TO.film(e.target.dataset.film).loop); e.target.classList.add('is-playing'); }
+    if (e.isIntersecting) { Loop.mount(fr, TO.film(e.target.dataset.film).loop, true); e.target.classList.add('is-playing'); }
     else { Loop.pause(fr); e.target.classList.remove('is-playing'); }
   }), { rootMargin: '120px 0px', threshold: 0.2 });
   function previews(root = document) {
@@ -397,11 +398,11 @@
 
   /* ---------------- HOME */
   function home() {
-    const featured = ['stay-curious', 'tell-ours', 'pretrial', 'freedom-pack', 'blossoming-beyond-bars'].map(TO.film);
+    const featured = ['stay-curious', 'tell-ours', 'freedom-before-trial', 'freedom-pack', 'blossoming-beyond-bars'].map(TO.film);
     const hero = $('#hero');
     const stage = $('.hero__stage', hero), rail = $('.hero__rail', hero);
     rail.style.setProperty('--n', featured.length);
-    stage.innerHTML = featured.map((f, i) => `<div class="hero__slide${i === 0 ? ' is-active' : ''}"><img src="${f.poster}" alt="" ${i ? 'loading="lazy"' : 'fetchpriority="high"'}><div class="vframe vframe--cover"></div></div>`).join('');
+    stage.innerHTML = featured.map((f, i) => `<div class="hero__slide${i === 0 ? ' is-active' : ''}${f.loop ? ' has-loop' : ''}"><img src="${f.loop ? f.loop + '-0.jpg' : f.poster}" alt="" ${i ? 'loading="lazy"' : 'fetchpriority="high"'}><div class="vframe vframe--cover"></div></div>`).join('');
     if (TO.motion.heroOverlay) stage.insertAdjacentHTML('beforeend', `<video class="hero__overlay-motion" src="${TO.motion.heroOverlay}" autoplay muted loop playsinline></video>`);
     rail.innerHTML = featured.map((f, i) => `<button class="hero__pick${i === 0 ? ' is-active' : ''}" data-i="${i}" aria-label="Show ${esc(f.title)}"><span class="bar"><i></i></span><span class="mono"><b>${pad(i + 1)}</b><span>${esc(f.short || f.title)}</span></span></button>`).join('');
     const titleEl = $('.hero__title', hero), metaEl = $('.hero__meta', hero), nowEl = $('[data-now]', hero), orb = $('.play-orb', hero);
@@ -580,7 +581,7 @@
     const sec = $('#stage');
     if (!sec) return;
     const media = $('.stage__media', sec), list = $('.stage__list', sec), detail = $('.stage__detail', sec);
-    media.innerHTML = CAPS.map((c, i) => `<div class="stage__layer${i === 0 ? ' is-active' : ''}"><img src="${TO.capLoops[c.key]}.jpg" alt="" loading="lazy"><div class="vframe vframe--cover"></div></div>`).join('');
+    media.innerHTML = CAPS.map((c, i) => `<div class="stage__layer${i === 0 ? ' is-active' : ''}"><img src="${TO.capLoops[c.key]}-0.jpg" alt="" loading="lazy"><div class="vframe vframe--cover"></div></div>`).join('');
     list.innerHTML = CAPS.map((c, i) => `<li><a class="stage__item${i === 0 ? ' is-active' : ''}" href="services.html#${c.key}" data-i="${i}" data-cursor="Explore"><span class="mono">0${i + 1}</span><span class="stage__name">${CAP_SHORT[c.key]}</span></a></li>`).join('');
     const layers = $$('.stage__layer', media), items = $$('.stage__item', list);
     let cur = -1, inView = false, timer = null;
