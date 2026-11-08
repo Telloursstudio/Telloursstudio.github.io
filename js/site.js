@@ -17,21 +17,21 @@
 
   /* ------------------------------------------------------------ Vimeo */
   const Vimeo = {
-    src(v, { bg = false, autoplay = false, start } = {}) {
+    src(v, { bg = false, autoplay = false, start, quality = '720p' } = {}) {
       const p = new URLSearchParams({ dnt: 1, title: 0, byline: 0, portrait: 0, playsinline: 1, autopause: 0 });
       if (v.hash) p.set('h', v.hash);
-      if (bg) { p.set('autoplay', 1); p.set('muted', 1); p.set('loop', 1); p.set('controls', 0); p.set('quality', '540p'); }
+      if (bg) { p.set('autoplay', 1); p.set('muted', 1); p.set('loop', 1); p.set('controls', 0); p.set('quality', quality); }
       else { p.set('color', 'ff4f1a'); if (autoplay) p.set('autoplay', 1); }
       const t = start ?? (bg ? (v.previewStart ?? v.start) : v.start);
       return `https://player.vimeo.com/video/${v.id}?${p}${t ? `#t=${t}s` : ''}`;
     },
     /* Mount a muted looping background film into `.vframe`; it fades in only once frames are playing. */
-    mountBg(frame, v, ratio) {
+    mountBg(frame, v, ratio, quality) {
       if (!frame || frame.dataset.mounted || reduced) return;
       frame.dataset.mounted = '1';
       if (ratio) frame.style.setProperty('--r', ratio);
       const ifr = document.createElement('iframe');
-      ifr.src = Vimeo.src(v, { bg: true });
+      ifr.src = Vimeo.src(v, { bg: true, quality });
       ifr.allow = 'autoplay; fullscreen; picture-in-picture';
       ifr.tabIndex = -1;
       ifr.setAttribute('aria-hidden', 'true');
@@ -56,6 +56,41 @@
       }, 700);
     },
   };
+  /* ------------------------------------------------------------ native loops
+     Muted, looping MP4 in a `.vframe`. Mounted once, then paused/resumed instead of
+     torn down, so swaps are instant. Falls back to Vimeo when the film has no loop. */
+  const Loop = {
+    mount(frame, base) {
+      if (!frame || reduced) return;
+      let v = frame._video;
+      if (!v) {
+        v = document.createElement('video');
+        Object.assign(v, { muted: true, loop: true, playsInline: true, preload: 'auto', poster: base + '.jpg', src: base + '.mp4' });
+        v.setAttribute('muted', ''); v.setAttribute('playsinline', ''); v.setAttribute('aria-hidden', 'true'); v.tabIndex = -1;
+        v.className = 'loop';
+        v.addEventListener('playing', () => frame.classList.add('is-live'));
+        frame.appendChild(v);
+        frame._video = v;
+        frame.dataset.mounted = 'loop';
+      }
+      v.play().catch(() => {});
+      if (v.readyState > 2) frame.classList.add('is-live');
+    },
+    pause(frame) {
+      if (!frame || !frame._video) return;
+      frame._video.pause();
+    },
+  };
+  // One entry point for "make this frame move": native loop when we have one, Vimeo otherwise.
+  const Bg = {
+    mount(frame, f, opts = {}) { if (f.loop) Loop.mount(frame, f.loop); else Vimeo.mountBg(frame, f.vimeo, ratioOf(f), opts.quality); },
+    stop(frame, opts = {}) {
+      if (!frame) return;
+      if (frame._video) { if (opts.keep) Loop.pause(frame); else { frame.classList.remove('is-live'); Loop.pause(frame); } }
+      else Vimeo.unmount(frame);
+    },
+  };
+
   const ratioOf = (f) => { const [w, h] = (f.aspect || '16 / 9').split('/').map(Number); return w / h; }; // '4 / 3' → 1.333
 
   /* ------------------------------------------------------------ chrome */
@@ -217,10 +252,20 @@
       <div class="card__body"><h3 class="card__title">${esc(f.short || f.title)}</h3><div class="card__meta mono">${meta.map((m) => `<span>${esc(m)}</span>`).join('') || '<span>Tell Ours Studio</span>'}</div></div>
     </a>`;
   }
+  // Cards whose film has a native loop play while on screen (and pause off screen), on every device.
+  const inViewPlayer = !reduced && 'IntersectionObserver' in window && new IntersectionObserver((entries) => entries.forEach((e) => {
+    const fr = $('.vframe', e.target);
+    if (e.isIntersecting) { Loop.mount(fr, TO.film(e.target.dataset.film).loop); e.target.classList.add('is-playing'); }
+    else { Loop.pause(fr); e.target.classList.remove('is-playing'); }
+  }), { rootMargin: '120px 0px', threshold: 0.2 });
   function previews(root = document) {
+    $$('.card[data-film]', root).forEach((el) => {
+      if (TO.film(el.dataset.film).loop && inViewPlayer) inViewPlayer.observe(el);
+    });
     if (!fine) return;
     $$('.card[data-film]', root).forEach((el) => {
       const f = TO.film(el.dataset.film);
+      if (f.loop) return;
       let t;
       el.addEventListener('mouseenter', () => { t = setTimeout(() => { Vimeo.mountBg($('.vframe', el), f.vimeo, ratioOf(f)); el.classList.add('is-previewing'); }, 280); });
       el.addEventListener('mouseleave', () => { clearTimeout(t); el.classList.remove('is-previewing'); Vimeo.unmount($('.vframe', el)); });
@@ -352,7 +397,7 @@
 
   /* ---------------- HOME */
   function home() {
-    const featured = ['still-arriving', 'inside-coastal', 'black-man-run', 'as-they-count-us', 'heba'].map(TO.film);
+    const featured = ['stay-curious', 'tell-ours', 'pretrial', 'freedom-pack', 'blossoming-beyond-bars'].map(TO.film);
     const hero = $('#hero');
     const stage = $('.hero__stage', hero), rail = $('.hero__rail', hero);
     rail.style.setProperty('--n', featured.length);
@@ -370,13 +415,15 @@
       const f = featured[cur];
       slides.forEach((s, k) => s.classList.toggle('is-active', k === cur));
       picks.forEach((p, k) => p.classList.toggle('is-active', k === cur));
-      if (prev !== cur) Vimeo.unmount($('.vframe', slides[prev]));
-      if (!reduced) Vimeo.mountBg($('.vframe', slides[cur]), f.vimeo, ratioOf(f));
+      if (prev !== cur) setTimeout(() => prev !== cur && Bg.stop($('.vframe', slides[prev]), { keep: true }), 1400);
+      if (!reduced) Bg.mount($('.vframe', slides[cur]), f, { quality: '1080p' });
       titleEl.textContent = f.title;
       nowEl.textContent = pad(cur + 1);
       metaEl.innerHTML = `<span>${esc(f.format)}</span><span>—</span><span>${f.year}</span>${f.runtime ? `<span>—</span><span>${f.runtime}</span>` : ''}`;
       orb.dataset.play = f.slug;
       orb.setAttribute('aria-label', `Watch ${f.title}`);
+      orb.classList.toggle('is-off', !!f.comingSoon);
+      orb.tabIndex = f.comingSoon ? -1 : 0;
       if (hasGsap) {
         const chs = splitChars(titleEl);
         gsap.fromTo(chs, { yPercent: 110, rotate: 8, opacity: 0 }, { yPercent: 0, rotate: 0, opacity: 1, duration: 1, ease: 'expo.out', stagger: 0.022 });
@@ -394,6 +441,7 @@
       inView = e.isIntersecting;
       const fr = $('.vframe', slides[cur]);
       if (fr && fr._player) inView ? fr._player.play().catch(() => {}) : fr._player.pause().catch(() => {});
+      if (fr && fr._video) inView ? fr._video.play().catch(() => {}) : fr._video.pause();
       if (hasGsap) gsap.getTweensOf('.hero__pick i').forEach((t) => (inView ? t.resume() : t.pause()));
     }, { threshold: 0.15 }).observe(hero);
 
@@ -429,7 +477,7 @@
     if (TO.motion.manifesto) $('.manifesto__media').insertAdjacentHTML('beforeend', `<video src="${TO.motion.manifesto}" autoplay muted loop playsinline></video>`);
 
     // selected work bento
-    const sel = ['as-they-count-us', 'black-man-run', 'yale-kente-stoling-2026', 'the-city-is-watching', 'freedom-pack', 'still-arriving'].map(TO.film);
+    const sel = ['where-does-yale-end', 'greys-anatomy', 'inside-coastal', 'hawa-tariq', 'citywide-youth-coalition-50', 'still-worth-reading'].map(TO.film);
     $('#bento').innerHTML =
       card(sel[0], 'card--xl', 0) + card(sel[1], 'card--tall', 1) + card(sel[2], 'card--tall', 2) +
       card(sel[3], 'card--half', 3) + card(sel[4], 'card--half', 4) +
@@ -440,7 +488,7 @@
     previews($('#bento'));
 
     reel();
-    caps();
+    capStage();
     counters();
     phones();
     studioPan();
@@ -526,6 +574,46 @@
     { key: 'brands', name: 'Brands, institutions & events', body: 'Brand films, institutional films, and cinematic coverage of the gatherings, ceremonies, and cultural moments that define a community.', list: ['Brand & campaign films', 'Institutional films', 'Event & live coverage', 'Multi-camera production'], films: ['yale-kente-stoling-2026', 'freddy-fixer-parade', 'blossoming-beyond-bars'] },
     { key: 'post', name: 'Photography & post', body: 'Editorial portraits and stills with the same care as a film frame — and the edit, color, sound, and motion that finish the story.', list: ['Portraits & campaign stills', 'Editing', 'Color & sound', 'Motion & delivery'], films: ['broken-wings', 'inside-coastal', 'the-city-is-watching'] },
   ];
+  /* ---------------- capability stage: hover a service, the whole screen becomes its footage */
+  const CAP_SHORT = { film: 'Documentary', nonprofit: 'Community', brands: 'Brands & events', post: 'Photo & post' };
+  function capStage() {
+    const sec = $('#stage');
+    if (!sec) return;
+    const media = $('.stage__media', sec), list = $('.stage__list', sec), detail = $('.stage__detail', sec);
+    media.innerHTML = CAPS.map((c, i) => `<div class="stage__layer${i === 0 ? ' is-active' : ''}"><img src="${TO.capLoops[c.key]}.jpg" alt="" loading="lazy"><div class="vframe vframe--cover"></div></div>`).join('');
+    list.innerHTML = CAPS.map((c, i) => `<li><a class="stage__item${i === 0 ? ' is-active' : ''}" href="services.html#${c.key}" data-i="${i}" data-cursor="Explore"><span class="mono">0${i + 1}</span><span class="stage__name">${CAP_SHORT[c.key]}</span></a></li>`).join('');
+    const layers = $$('.stage__layer', media), items = $$('.stage__item', list);
+    let cur = -1, inView = false, timer = null;
+    function set(i) {
+      if (i === cur) return;
+      const prev = cur; cur = i;
+      layers.forEach((l, k) => l.classList.toggle('is-active', k === i));
+      items.forEach((it, k) => it.classList.toggle('is-active', k === i));
+      const c = CAPS[i];
+      detail.innerHTML = `<p>${c.body}</p><ul>${c.list.map((l) => `<li>${l}</li>`).join('')}</ul>`;
+      if (hasGsap && !reduced) gsap.fromTo(detail.children, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.7, ease: 'expo.out', stagger: 0.06 });
+      if (inView) Loop.mount($('.vframe', layers[i]), TO.capLoops[c.key]);
+      if (prev > -1) setTimeout(() => cur !== prev && Loop.pause($('.vframe', layers[prev])), 900);
+    }
+    items.forEach((it) => {
+      const go = () => { set(+it.dataset.i); restart(); };
+      it.addEventListener('mouseenter', go);
+      it.addEventListener('focus', go);
+    });
+    // Touch screens can't hover: the stage slowly cycles through the services instead.
+    function restart() {
+      clearInterval(timer);
+      if (!fine && !reduced && inView) timer = setInterval(() => set((cur + 1) % CAPS.length), 4500);
+    }
+    new IntersectionObserver(([e]) => {
+      inView = e.isIntersecting;
+      const fr = $('.vframe', layers[cur]);
+      if (inView) Loop.mount(fr, TO.capLoops[CAPS[cur].key]); else Loop.pause(fr);
+      restart();
+    }, { rootMargin: '100px 0px', threshold: 0.1 }).observe(sec);
+    set(0);
+  }
+
   function caps() {
     const box = $('#caps');
     if (!box) return;

@@ -46,4 +46,13 @@ alpha@telloursstudio.com. To receive submissions directly instead, create a free
 to the `<form>`. The script already posts to it when an action is set.
 
 ## Motion layer
-See `RUNWAY.md` for the three generated loops that slot into `TO.motion` in `js/data.js`.
+The home page plays **silent MP4 loops cut from our own films** (`assets/loops/`), the way
+filmlaab.com does: a full-screen hero loop, work cards that play while on screen, and a
+capabilities stage where hovering a service swaps the whole screen to its footage.
+- Cut a loop: `tools/cut-loop.sh "<film file>" <slug> <start> <length> [...]` (several pairs = montage).
+- Turn it on for a film: add `'<slug>': true` to `TO.loops` in `js/data.js`. Films without a
+  loop fall back to the Vimeo background player (now 720p, 1080p in the hero).
+- Stage backdrops live in `TO.capLoops`; the hero opener (Stay Curious) is `TO.upcoming`.
+- Keep loops steady, under ~6 MB, no burned-in subtitles or titles.
+
+See also `RUNWAY.md` for the three generated loops that slot into `TO.motion` in `js/data.js`.

@@ -31,6 +31,56 @@ window.TO = {
   ],
 
   films: [
+    // Added Nov 8 2026 from the Vimeo library. Synopses are first drafts — check before publishing.
+    {
+      slug: 'stay-curious', title: 'Stay Curious', year: '2026', category: 'Documentary',
+      vimeo: { id: '1244465083' }, runtime: '3:05',
+      synopsis: 'The trailer for Stay Curious, a documentary filmed in Guyana. Coming soon.',
+      credits: [['Production', 'Tell Ours Studio']],
+      production: { location: 'Guyana', format: 'Documentary · Trailer' },
+      stills: ['assets/loops/stay-curious.jpg'],
+    },
+    {
+      slug: 'tell-ours', title: 'Tell Ours', year: '2026', category: 'Studio Film',
+      vimeo: { id: '1230589423' }, runtime: '3:04',
+      synopsis: 'Who we are, in our own words: a portrait of Tell Ours Studio, the people we work with, and the stories we tell.',
+      credits: [['Production', 'Tell Ours Studio']],
+      production: { location: 'West Haven, CT', format: 'Studio Film' },
+      stills: ['assets/loops/tell-ours.jpg'],
+    },
+    {
+      slug: 'pretrial', title: 'Pretrial', year: '2026', category: 'Documentary',
+      vimeo: { id: '1244005219' }, runtime: '4:59',
+      synopsis: 'A short documentary on pretrial justice in Connecticut: what it costs, who pays, and the people working to change it.',
+      credits: [['Production', 'Tell Ours Studio']],
+      production: { location: 'Connecticut', format: 'Short Documentary' },
+      stills: ['assets/loops/pretrial.jpg'],
+      collections: ['nonprofit-community'],
+    },
+    {
+      slug: 'hawa-tariq', title: 'Hawa & Tariq', year: '2026', category: 'Wedding Film',
+      vimeo: { id: '1237420999' }, runtime: '10:20',
+      synopsis: 'The nikah of Hawa and Tariq, surrounded by family and friends.',
+      credits: [['Production', 'Tell Ours Studio']],
+      production: { format: 'Wedding Film' },
+      stills: ['assets/loops/hawa-tariq.jpg'],
+    },
+    {
+      slug: 'where-does-yale-end', title: 'Where Does Yale End?', short: 'Where Does Yale End', year: '2026', category: 'Documentary',
+      vimeo: { id: '1227759960' }, runtime: '6:22',
+      synopsis: 'A short documentary asking where Yale ends and New Haven begins, told by the students and neighbours who live on both sides of the line.',
+      credits: [['Production', 'Tell Ours Studio']],
+      production: { location: 'New Haven, CT', format: 'Short Documentary' },
+      stills: ['assets/loops/where-does-yale-end.jpg'],
+    },
+    {
+      slug: 'greys-anatomy', title: "Grey's Anatomy", year: '2026', category: 'Short Film',
+      vimeo: { id: '1218755416' }, runtime: '2:00',
+      synopsis: "Grey's Anatomy is a short film by Tell Ours Studio.",
+      credits: [['Production', 'Tell Ours Studio']],
+      production: { format: 'Short Film' },
+      stills: ['assets/loops/greys-anatomy.jpg'],
+    },
     {
       slug: 'heba', title: 'Heba', year: '2026', category: 'Documentary Portrait',
       vimeo: { id: '1229264147' }, runtime: '2:08',
@@ -154,8 +204,35 @@ window.TO = {
   onSet: { id: '1208305734', poster: IMG + '4743dc1e-wtoo-41-of-45.jpg' },
 };
 
+/* Native motion loops — silent H.264 MP4s cut from the films (assets/loops/<slug>.mp4 + .jpg).
+   A film listed here plays its own crisp loop on the home hero and work cards; any film not
+   listed falls back to the Vimeo background player. Cut new ones with tools/cut-loop.sh. */
+TO.loops = {
+  'stay-curious': true,          // Drive_G master: night street, seawall, river
+  'tell-ours': true,             // Vimeo 4K/1080: wings, graduate, kente, the hug
+  'pretrial': true,              // bust in window light, water, portraits, the room
+  'hawa-tariq': true,            // rings, henna on fur, the veil
+  'where-does-yale-end': true,   // campus, smile, iron gate, fountain
+  'greys-anatomy': true,         // mirror, mask, blue mask, kids running
+  'freedom-pack': true,          // the fence, packing, the bags, the embrace
+  'citywide-youth-coalition-50': true,
+  'still-worth-reading': true,
+  'inside-coastal': true,
+  'blossoming-beyond-bars': true,
+  'the-city-is-watching': true,
+};
+
+/* The four capability backdrops on the home page (hover a service to swap the full-screen loop). */
+TO.capLoops = {
+  film: 'assets/loops/cap-film',          // studio reel: B&W profile
+  nonprofit: 'assets/loops/cap-nonprofit', // studio reel: community table
+  brands: 'assets/loops/hawa-tariq',       // Hawa & Tariq: rings, henna, the veil
+  post: 'assets/loops/cap-post',           // studio reel: the edit bay
+};
+
 TO.films.forEach((f, i) => {
   f.poster = f.stills[0];
+  if (TO.loops[f.slug]) f.loop = 'assets/loops/' + f.slug;
   f.format = f.production.format || f.category;
   f.index = i;
 });
